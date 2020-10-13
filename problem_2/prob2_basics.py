@@ -8,9 +8,11 @@ import pandas as pd
 import sklearn.linear_model
 import sklearn.metrics
 
+DATA_DIR = os.path.join('.', 'data_sneaker_vs_sandal')
+
 def data_exploration():
-    print("calling function")
-    DATA_DIR = os.path.join('.', 'data_sneaker_vs_sandal') #Make sure you have downloaded data and your directory is correct
+    x_test = np.loadtxt(os.path.join(DATA_DIR, 'x_test.csv'), delimiter=',', skiprows=1)
+    x_test_shape = x_test.shape[0]
 
     # Load outcomes y arrays
     y_train = np.loadtxt(os.path.join(DATA_DIR, 'y_train.csv'), delimiter=',', skiprows=1)
@@ -18,10 +20,51 @@ def data_exploration():
     train_total = len(y_train)
     train_pos = np.count_nonzero(y_train == 1.0)
     train_frac_pos = float(train_pos) / float(train_total)
+    test_percent = float(x_test_shape) / (float(train_total) + float(x_test_shape))
 
     print(f"Train total = {train_total}")
     print(f"train_pos total = {train_pos}")
     print(f"train_frac_pos = {train_frac_pos}")
+    print(f"Test total = {x_test_shape}")
+    print(f"Test percent = {test_percent}")
+
+
+def split_into_train_and_valid(frac_valid=0.1428, random_state=None):
+    
+    if random_state is None:
+        random_state = np.random
+    elif type(random_state) is int:
+        random_state = np.random.RandomState(random_state)
+
+    # Load outcomes y arrays
+    x_train = np.loadtxt(os.path.join(DATA_DIR, 'x_train.csv'), delimiter=',', skiprows=1)
+    y_train = np.loadtxt(os.path.join(DATA_DIR, 'y_train.csv'), delimiter=',', skiprows=1)
+    print(y_train.shape)
+    total_samples = len(y_train)
+    total_positive_samples = np.count_nonzero(y_train == 1.0)
+
+    positive_samples = np.where(y_train == 1.0)[0]
+    negative_samples = np.where(y_train == 0)[0]
+
+    # Determine the number of samples that will be in the test set
+    n_valid_samples = int(np.ceil(frac_valid * total_samples))
+    n_valid_positive_samples = n_valid_samples // 2
+
+    positive_samples_copy = random_state.permutation(positive_samples)
+    valid_positive_samples = positive_samples_copy[0:n_valid_positive_samples]
+    train_positive_samples = positive_samples_copy[n_valid_positive_samples:]
+
+    negative_samples_copy = random_state.permutation(negative_samples)
+    valid_negative_samples = negative_samples_copy[0:n_valid_positive_samples]
+    train_negative_samples = negative_samples_copy[n_valid_positive_samples:]
+
+    train_set = np.vstack((x_train[train_positive_samples], x_train[train_negative_samples]))
+    valid_set = np.vstack((x_train[valid_positive_samples], x_train[valid_negative_samples]))
+
+    print(f"Train set size = {train_set.shape[0]}")
+    print(f"Valid set size = {valid_set.shape[0]}")
+    return train_set, valid_set
 
 if __name__ == '__main__':
-    data_exploration()
+    #data_exploration()
+    split_into_train_and_valid(frac_valid=0.1428, random_state=None)
