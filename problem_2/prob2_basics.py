@@ -4,9 +4,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 import sklearn.linear_model
 import sklearn.metrics
+
+from shared_code import *
 
 DATA_DIR = os.path.join('.', 'data_sneaker_vs_sandal')
 
@@ -73,67 +74,9 @@ def split_into_train_and_valid(frac_valid=0.1428, random_state=None):
     return x_train_set, y_train_set, x_valid_set, y_valid_set
 
 
-def calc_mean_binary_cross_entropy_from_probas(ytrue_N, yproba1_N):
-    return sklearn.metrics.log_loss(ytrue_N, yproba1_N, labels=[0, 1]) / np.log(2.0)
-
-def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
-    # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
-    C = 1e6
-    solver = 'lbfgs'
-    iterations = 40
-    iter_step = 1
-
-    lr_models_i = list()
-
-    error_tr_lr_i = list()
-    error_va_lr_i = list()
-
-    bce_tr_lr_i = list()
-    bce_va_lr_i = list()
-
-    for i in range(0, iterations, iter_step):
-        lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver)
-        lr_i.fit(x_tr_M784, y_tr_M)  # Part b
-        lr_models_i.append(lr_i)
-
-        yproba1_tr_M = lr_i.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
-        yproba1_va_N = lr_i.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
-
-        error_tr_lr_i.append(sklearn.metrics.zero_one_loss(y_tr_M, yproba1_tr_M >= 0.5))
-        error_va_lr_i.append(sklearn.metrics.zero_one_loss(y_va_N, yproba1_va_N >= 0.5))
-
-        bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
-        bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
-    plot_loss(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i,)
-    plot_error(iterations, iter_step, error_tr_lr_i, error_va_lr_i)
-
-def plot_loss(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i):
-    fig, ax = plt.subplots()
-
-    # Set up the Log Loss subplot
-    ax.plot(np.arange(1, iterations + 1, iter_step), bce_tr_lr_i, 'b.-', label='train')
-    ax.plot(np.arange(1, iterations + 1, iter_step), bce_va_lr_i, 'r.-', label='valid')
-    ax.set_title('Log Loss')
-    ax.set_ylabel('loss')
-    ax.set_xlabel("number of iterations")
-    ax.legend()
-
-    plt.show()
-
-def plot_error(iterations, iter_step, error_tr_lr_i):
-    fig, ax = plt.subplots()
-
-    # Set up the Error rate subplot
-    ax.plot(np.arange(1, iterations + 1, iter_step), error_tr_lr_i, 'b:', label='train')
-    ax.plot(np.arange(1, iterations + 1, iter_step), error_va_lr_i, 'r:', label='valid')
-    ax.set_title('Error Rate')
-    ax.set_ylabel('error')
-    ax.set_xlabel("number of iterations")
-    ax.legend()
-
-    plt.show()
-
 if __name__ == '__main__':
     #data_exploration()
     x_train_set, y_train_set, x_valid_set, y_valid_set = split_into_train_and_valid(frac_valid=0.1428, random_state=None)
-    lossAssessment(x_train_set, y_train_set, x_valid_set, y_valid_set)
+    #lossAssessment(x_train_set, y_train_set, x_valid_set, y_valid_set)
+    c_selection(x_train_set, y_train_set, x_valid_set, y_valid_set)
+    
