@@ -73,19 +73,29 @@ def lossAssessment():
 
         bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
         bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
+    plotLossError(iterations, iter_step, error_tr_lr_i, error_va_lr_i, bce_tr_lr_i, bce_va_lr_i,)
 
-    plt.plot(np.arange(1, iterations + 1, iter_step), bce_tr_lr_i, 'b.-', label='train binary cross entropy')
-    plt.plot(np.arange(1, iterations + 1, iter_step), bce_va_lr_i, 'r.-', label='valid binary cross entropy')
 
-    plt.plot(np.arange(1, iterations + 1, iter_step), error_tr_lr_i, 'b:', label='train err')
-    plt.plot(np.arange(1, iterations + 1, iter_step), error_va_lr_i, 'r:', label='valid err')
+def plotLossError(iterations, iter_step, error_tr_lr_i, error_va_lr_i, bce_tr_lr_i, bce_va_lr_i,):
+    _, axes = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=False)
 
-    plt.ylabel('error')
-    plt.xlabel("number of training iterations")
-    plt.legend()  # make legend outside plot
-    # plt.ylim([0, 0.7])
+    # Set up the Log Loss subplot
+    axes[0].plot(np.arange(1, iterations + 1, iter_step), bce_tr_lr_i, 'b.-', label='train')
+    axes[0].plot(np.arange(1, iterations + 1, iter_step), bce_va_lr_i, 'r.-', label='valid')
+    axes[0].set_title('Log Loss')
+    axes[0].set_ylabel('loss')
+    axes[0].set_xlabel("number of iterations")
+    axes[0].legend()
+
+    # Set up the Error rate subplot
+    axes[1].plot(np.arange(1, iterations + 1, iter_step), error_tr_lr_i, 'b:', label='train')
+    axes[1].plot(np.arange(1, iterations + 1, iter_step), error_va_lr_i, 'r:', label='valid')
+    axes[1].set_title('Error Rate')
+    axes[1].set_ylabel('error')
+    axes[1].set_xlabel("number of iterations")
+    axes[1].legend()
+
     plt.show()
-    pass
 
 
 if __name__ == "__main__":
