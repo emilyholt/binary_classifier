@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from helpers import calc_mean_binary_cross_entropy_from_probas
 
 # Data loading and globals
-DATA_DIR = os.path.join('data_digits_8_vs_9_noisy')  # Make sure you have downloaded data and your directory is correct
+path, filename = os.path.split(__file__)
+DATA_DIR = os.path.join(path, 'data_digits_8_vs_9_noisy')  # Make sure you have downloaded data and your directory is correct
 
 x_tr_M784 = np.loadtxt(os.path.join(DATA_DIR, 'x_train.csv'), delimiter=',', skiprows=1)
 x_va_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_valid.csv'), delimiter=',', skiprows=1)
@@ -24,8 +25,6 @@ M = M_shape[0]
 
 y_tr_M = np.loadtxt(os.path.join(DATA_DIR, 'y_train.csv'), delimiter=',', skiprows=1)
 y_va_N = np.loadtxt(os.path.join(DATA_DIR, 'y_valid.csv'), delimiter=',', skiprows=1)
-
-# Functions
 
 
 def datasetExploration():
@@ -45,14 +44,14 @@ def datasetExploration():
     """)
 
 
-def lossAssessment():
+def lossErrorAssessment():
     # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
     C = 1e6
     solver = 'lbfgs'
     iterations = 40
     iter_step = 1
 
-    lr_models_i = list()
+    # lr_models_i = list()
 
     error_tr_lr_i = list()
     error_va_lr_i = list()
@@ -63,7 +62,7 @@ def lossAssessment():
     for i in range(0, iterations, iter_step):
         lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver)
         lr_i.fit(x_tr_M784, y_tr_M)  # Part b
-        lr_models_i.append(lr_i)
+        # lr_models_i.append(lr_i)
 
         yproba1_tr_M = lr_i.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
         yproba1_va_N = lr_i.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
@@ -73,31 +72,97 @@ def lossAssessment():
 
         bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
         bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
-    plotLossError(iterations, iter_step, error_tr_lr_i, error_va_lr_i, bce_tr_lr_i, bce_va_lr_i,)
+    plotLossErrorOverIterations(iterations, iter_step, error_tr_lr_i, error_va_lr_i, bce_tr_lr_i, bce_va_lr_i,)
 
 
-def plotLossError(iterations, iter_step, error_tr_lr_i, error_va_lr_i, bce_tr_lr_i, bce_va_lr_i,):
+def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
+    """ A generic function for plotting a list of lines on an axis with common x and y labels
+    """
+    for (y_data, line_type, label) in lines_with_labels:
+        plot.plot(x, y_data, line_type, label=label)
+    plot.set_title(title)
+    plot.set_ylabel(ylabel)
+    plot.set_xlabel(xlabel)
+    plot.legend()
+
+
+def plotLoss(plot, title, x, xlabel, bce_tr, bce_va):
+    ylabel = 'loss'
+    # y_data, line_type, label is the shape of a line tuple
+    tr_line = (bce_tr, 'b.-', 'train')
+    va_line = (bce_va, 'r.-', 'valid')
+    linePlot(plot, title, xlabel, ylabel, x, tr_line, va_line)
+
+
+def plotError(plot, title, x, xlabel, error_tr, error_va):
+    ylabel = 'error'
+    tr_line = (error_tr, 'b.-', 'train')
+    va_line = (error_va, 'r.-', 'valid')
+    linePlot(plot, title, xlabel, ylabel, x, tr_line, va_line)
+
+
+def plotLossErrorOverIterations(iterations, iter_step, error_tr_lr_i, error_va_lr_i, bce_tr_lr_i, bce_va_lr_i,):
+    """ Graph two subplots, visualizing Log-Loss and Error,
+        as a function of different max_iteration values over training and validation
+    """
     _, axes = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=False)
-
+    x = np.arange(1, iterations + 1, iter_step)
+    xlabel = 'number of iterations'
     # Set up the Log Loss subplot
-    axes[0].plot(np.arange(1, iterations + 1, iter_step), bce_tr_lr_i, 'b.-', label='train')
-    axes[0].plot(np.arange(1, iterations + 1, iter_step), bce_va_lr_i, 'r.-', label='valid')
-    axes[0].set_title('Log Loss')
-    axes[0].set_ylabel('loss')
-    axes[0].set_xlabel("number of iterations")
-    axes[0].legend()
-
+    log_loss_title = "Log Loss over Training Iterations"
+    plotLoss(axes[0], log_loss_title, x, xlabel, bce_tr_lr_i, bce_va_lr_i)
     # Set up the Error rate subplot
-    axes[1].plot(np.arange(1, iterations + 1, iter_step), error_tr_lr_i, 'b:', label='train')
-    axes[1].plot(np.arange(1, iterations + 1, iter_step), error_va_lr_i, 'r:', label='valid')
-    axes[1].set_title('Error Rate')
-    axes[1].set_ylabel('error')
-    axes[1].set_xlabel("number of iterations")
-    axes[1].legend()
-
+    err_title = "Error over Training Iterations"
+    plotError(axes[1], err_title, x, xlabel, error_tr_lr_i, error_va_lr_i)
     plt.show()
+
+
+def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
+    """ Plot Error values for training and validation sets
+        as a function of different C-hyperparameters
+    """
+    x = C_grid
+    xlabel = "C values"
+    err_title = "Error over Training Iterations"
+    # Set up the Error rate subplot
+    plotError(plt.gca(), err_title, x, xlabel, error_tr_lr_c, error_va_lr_c)
+    plt.show()
+
+
+def hyperparameterSelection(plot=False):
+    """ Iterate over our C_grid to see which hyperparameter gives us the best performance
+    """
+    C_grid = np.logspace(-9, 6, 31)
+    solver = 'lbfgs'
+    max_iter = 1000  # Fixed per instructions
+
+    lr_models_c = list()
+
+    error_tr_lr_c = list()
+    error_va_lr_c = list()
+
+    for C in C_grid:
+        # Build and evaluate model for this C value
+        lr_c = sklearn.linear_model.LogisticRegression(max_iter=max_iter, C=C, solver=solver)
+        lr_c.fit(x_tr_M784, y_tr_M)  # Part b
+        lr_models_c.append(lr_c)
+
+        # Record training and validation set error rate
+        yproba1_tr_M = lr_c.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
+        yproba1_va_N = lr_c.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
+
+        error_tr_lr_c.append(sklearn.metrics.zero_one_loss(y_tr_M, yproba1_tr_M >= 0.5))
+        error_va_lr_c.append(sklearn.metrics.zero_one_loss(y_va_N, yproba1_va_N >= 0.5))
+
+    if plot:
+        plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c)
+    min_c_index = np.argmin(error_va_lr_c)
+    min_c = C_grid[min_c_index]
+    chosen_model = lr_models_c[min_c_index]
+    print("min_c", min_c)
 
 
 if __name__ == "__main__":
     # datasetExploration()
-    lossAssessment()
+    # lossErrorAssessment()
+    hyperparameterSelection(plot=False)
