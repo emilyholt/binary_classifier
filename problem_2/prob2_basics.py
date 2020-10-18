@@ -26,11 +26,10 @@ def data_exploration():
     print(f"Train total = {train_total}")
     print(f"train_pos total = {train_pos}")
     print(f"train_frac_pos = {train_frac_pos}")
-    print(f"Test total = {x_test_shape}")
-    print(f"Test percent = {test_percent}")
+    print(f"Test total = {x_test_shape}\n")
 
 
-def split_into_train_and_valid(frac_valid=0.1428, random_state=None):
+def split_into_train_and_valid(n_valid_samples=2000, random_state=None):
     
     if random_state is None:
         random_state = np.random
@@ -41,13 +40,11 @@ def split_into_train_and_valid(frac_valid=0.1428, random_state=None):
     x_train = np.loadtxt(os.path.join(DATA_DIR, 'x_train.csv'), delimiter=',', skiprows=1)
     y_train = np.loadtxt(os.path.join(DATA_DIR, 'y_train.csv'), delimiter=',', skiprows=1)
 
-
     # Determine the number of samples that will be in the test set
     total_samples = len(y_train)
     total_positive_samples = np.count_nonzero(y_train == 1.0)
     positive_samples = np.where(y_train == 1.0)[0]
     negative_samples = np.where(y_train == 0)[0]
-    n_valid_samples = int(np.ceil(frac_valid * total_samples))
     n_valid_positive_samples = n_valid_samples // 2
 
     # Get indices of positive samples
@@ -68,15 +65,20 @@ def split_into_train_and_valid(frac_valid=0.1428, random_state=None):
     y_valid_set = np.hstack((y_train[valid_positive_samples], y_train[valid_negative_samples]))
 
     print(f"X Train set size = {x_train_set.shape}")
-    print(f"Y Train set size = {y_train_set.shape}\n")
+    print(f"Y Train set size = {y_train_set.shape}")
     print(f"X Valid set size = {x_valid_set.shape}")
     print(f"Y Valid set size = {y_valid_set.shape}")
+
+    train_pos = np.count_nonzero(y_train_set == 1.0)
+    print(f"train_pos total = {train_pos}")
+    valid_pos = np.count_nonzero(y_valid_set == 1.0)
+    print(f"valid_pos total = {valid_pos}")
     return x_train_set, y_train_set, x_valid_set, y_valid_set
 
 
 if __name__ == '__main__':
-    #data_exploration()
-    x_train_set, y_train_set, x_valid_set, y_valid_set = split_into_train_and_valid(frac_valid=0.1428, random_state=None)
-    #lossAssessment(x_train_set, y_train_set, x_valid_set, y_valid_set)
+    data_exploration()
+    x_train_set, y_train_set, x_valid_set, y_valid_set = split_into_train_and_valid(n_valid_samples=2000, random_state=None)
+    # lossAssessment(x_train_set, y_train_set, x_valid_set, y_valid_set)
     c_selection(x_train_set, y_train_set, x_valid_set, y_valid_set)
     

@@ -47,6 +47,12 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     plot_loss_over_iters(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i,)
     plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i)
 
+    # Find C value with best bce & error rates
+    best_error_ind = error_va_lr_i.index(min(error_va_lr_i))
+    best_bce_ind = bce_va_lr_i.index(min(bce_va_lr_i))
+    print(f"number of iterations with lowest error = {best_error_ind + 1}")
+    print(f"number of iterations with lowest bce = {best_bce_ind + 1}")
+
 def c_selection(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
     C_grid = np.logspace(-9, 6, 31)
@@ -60,7 +66,7 @@ def c_selection(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     bce_va_lr_i = list()
 
     for C in C_grid:
-        lr_i = sklearn.linear_model.LogisticRegression(max_iter=1000, C=C, solver=solver)
+        lr_i = sklearn.linear_model.LogisticRegression(max_iter=max_iter, C=C, solver=solver)
         lr_i.fit(x_tr_M784, y_tr_M)
         lr_models_i.append(lr_i)
 
@@ -94,7 +100,7 @@ def plot_loss_over_iters(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i):
     ax.set_ylabel('loss')
     ax.set_xlabel("number of iterations")
     ax.legend()
-
+    plt.savefig('LogLossIterations.png')
     plt.show()
 
 def plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i):
@@ -107,29 +113,35 @@ def plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i):
     ax.set_ylabel('error')
     ax.set_xlabel("number of iterations")
     ax.legend()
-
+    plt.savefig('ErrorRateIterations.png')
     plt.show()
 
 def plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i):
     fig, ax = plt.subplots()
 
     # Set up the Log Loss subplot
-    ax.plot(C_grid, bce_tr_lr_i, 'b.-', label='train')
-    ax.plot(C_grid, bce_va_lr_i, 'r.-', label='valid')
+    x = np.log10(C_grid)
+    ax.plot(x, bce_tr_lr_i, 'b.-', label='train')
+    ax.plot(x, bce_va_lr_i, 'r.-', label='valid')
     ax.set_title('Log Loss at different C Values')
     ax.set_ylabel('loss')
-    ax.set_xlabel("C Values")
+    ax.set_xlabel("log_{10} C values")
     ax.legend()
+    plt.savefig('LogLossCValues.png')
     plt.show()
 
 def plot_error_over_c(C_grid, error_tr_lr_i, error_va_lr_i):
     fig, ax = plt.subplots()
-
+    
     # Set up the Error rate subplot
-    ax.plot(C_grid, error_tr_lr_i, 'b:', label='train')
-    ax.plot(C_grid, error_va_lr_i, 'r:', label='valid')
+    x = np.log10(C_grid)
+    ax.plot(x, error_tr_lr_i, 'b:', label='train')
+    ax.plot(x, error_va_lr_i, 'r:', label='valid')
     ax.set_title('Error Rate at different C Values')
-    ax.set_ylabel('error')
-    ax.set_xlabel("C Values")
+    ax.set_ylabel('Error Rate')
+    ax.set_xlabel("log_{10} C values")
     ax.legend()
+    plt.savefig('ErrorRateCValues.png')
     plt.show()
+
+    
