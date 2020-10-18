@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import pickle
+from pathlib import Path
 
 import sklearn.linear_model
 import sklearn.metrics
@@ -13,6 +14,7 @@ from helpers import calc_mean_binary_cross_entropy_from_probas
 # Data loading and globals
 path, filename = os.path.split(__file__)
 DATA_DIR = os.path.join(path, 'data_digits_8_vs_9_noisy')  # Make sure you have downloaded data and your directory is correct
+PICKLE_MODEL = os.path.join(path, 'optimal_lrmodel.pkl')
 
 x_tr_M784 = np.loadtxt(os.path.join(DATA_DIR, 'x_train.csv'), delimiter=',', skiprows=1)
 x_va_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_valid.csv'), delimiter=',', skiprows=1)
@@ -52,8 +54,6 @@ def lossErrorAssessment():
     iterations = 40
     iter_step = 1
 
-    # lr_models_i = list()
-
     error_tr_lr_i = list()
     error_va_lr_i = list()
 
@@ -63,7 +63,6 @@ def lossErrorAssessment():
     for i in range(0, iterations, iter_step):
         lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver)
         lr_i.fit(x_tr_M784, y_tr_M)  # Part b
-        # lr_models_i.append(lr_i)
 
         yproba1_tr_M = lr_i.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
         yproba1_va_N = lr_i.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
@@ -134,7 +133,8 @@ def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
 def hyperparameterSelection(plot=False, pickle_it=True):
     """ Iterate over our C_grid to see which hyperparameter gives us the best performance
     """
-    C_grid = np.logspace(-9, 6, 31)
+    # C_grid = np.logspace(-9, 6, 31)
+    C_grid = np.asarray([0.01])
     solver = 'lbfgs'
     max_iter = 1000  # Fixed per instructions
 
@@ -156,15 +156,21 @@ def hyperparameterSelection(plot=False, pickle_it=True):
         error_tr_lr_c.append(sklearn.metrics.zero_one_loss(y_tr_M, yproba1_tr_M >= 0.5))
         error_va_lr_c.append(sklearn.metrics.zero_one_loss(y_va_N, yproba1_va_N >= 0.5))
 
+    # Conditionally plot the model
     if plot:
         plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c)
+
     min_c_index = np.argmin(error_va_lr_c)
     min_c = C_grid[min_c_index]
-    # chosen_model = lr_models_c[min_c_index]
     print("min_c", min_c)
 
+    if pickle_it:
+        with Path(PICKLE_MODEL).open('wb') as pickle_file:
+            chosen_model = lr_models_c[min_c_index]
+            pickle.dump(chosen_model, pickle_file)
 
-def analyzeErrors(model):
+
+def analyzeErrors():
     """
     For the selected model from 1C, we might wonder if there is any pattern to the examples the classifier gets wrong.
     Figure 1D : Produce two plots,
@@ -173,10 +179,13 @@ def analyzeErrors(model):
     You can display the images by converting the pixel data using the matplotlib function imshow(), using the Grey colormap, with vmin=0.0 and vmax=1.0.
     Place each plot into your PDF as a properly captioned figure.
     """
+    with Path(PICKLE_MODEL).open('rb') as pickle_file:
+        model = pickle.load(pickle_file)
     yclass_va_N = model.predict(x_va_N784)  # The probability of predicting class 1 on the validation set
 
 
 if __name__ == "__main__":
     # datasetExploration()
     # lossErrorAssessment()
-    model = hyperparameterSelection(plot=False, pickle_it=True)
+    # hyperparameterSelection(plot=False, pickle_it=True)
+    analyzeErrors()
