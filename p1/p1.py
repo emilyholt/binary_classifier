@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import pickle
 
 import sklearn.linear_model
 import sklearn.metrics
@@ -121,15 +122,16 @@ def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
     """ Plot Error values for training and validation sets
         as a function of different C-hyperparameters
     """
-    x = C_grid
-    xlabel = "C values"
-    err_title = "Error over Training Iterations"
+    x = np.log10(C_grid)
+    xlabel = "log_{10} C"
+    err_title = "Error over C-values"
+    xscale = "log"
     # Set up the Error rate subplot
     plotError(plt.gca(), err_title, x, xlabel, error_tr_lr_c, error_va_lr_c)
     plt.show()
 
 
-def hyperparameterSelection(plot=False):
+def hyperparameterSelection(plot=False, pickle_it=True):
     """ Iterate over our C_grid to see which hyperparameter gives us the best performance
     """
     C_grid = np.logspace(-9, 6, 31)
@@ -158,11 +160,23 @@ def hyperparameterSelection(plot=False):
         plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c)
     min_c_index = np.argmin(error_va_lr_c)
     min_c = C_grid[min_c_index]
-    chosen_model = lr_models_c[min_c_index]
+    # chosen_model = lr_models_c[min_c_index]
     print("min_c", min_c)
+
+
+def analyzeErrors(model):
+    """
+    For the selected model from 1C, we might wonder if there is any pattern to the examples the classifier gets wrong.
+    Figure 1D : Produce two plots,
+        one consisting of 9 sample images that are false positives on the validation set,
+        and one consisting of 9 false negatives.
+    You can display the images by converting the pixel data using the matplotlib function imshow(), using the Grey colormap, with vmin=0.0 and vmax=1.0.
+    Place each plot into your PDF as a properly captioned figure.
+    """
+    yclass_va_N = model.predict(x_va_N784)  # The probability of predicting class 1 on the validation set
 
 
 if __name__ == "__main__":
     # datasetExploration()
     # lossErrorAssessment()
-    hyperparameterSelection(plot=False)
+    model = hyperparameterSelection(plot=False, pickle_it=True)
