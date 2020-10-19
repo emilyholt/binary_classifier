@@ -44,6 +44,9 @@ def knn_classifier(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     plot_loss_over_neighbors(neighbors, bce_tr_lr_i, bce_va_lr_i,)
     plot_error_over_neighbors(neighbors, error_tr_lr_i, error_va_lr_i)
 
+    # Plot ROC curve
+    plot_roc_curve(y_va_N, yproba1_va_N)
+
     # Find optimal number of neighbors with best bce & error rates
     best_error_ind = error_va_lr_i.index(min(error_va_lr_i))
     best_bce_ind = bce_va_lr_i.index(min(bce_va_lr_i))
