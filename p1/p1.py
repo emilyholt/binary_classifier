@@ -1,6 +1,7 @@
 from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 import numpy as np
 import os
 import pandas as pd
@@ -209,6 +210,19 @@ def interpretLearnedWeights():
         and plot the result using imshow(),
         with colormap RdYlBu, vmin=-0.5, and vmax=0.5.
     """
+    with Path(PICKLE_MODEL).open('rb') as pickle_file:
+        model = pickle.load(pickle_file)
+    weights = model.coef_
+
+    cur_ax = plt.gca()
+
+    img = cur_ax.imshow(weights.reshape(28, 28), interpolation='nearest', vmin=-0.5, vmax=0.5, cmap='RdYlBu')
+    cur_ax.set_xticks([])
+    cur_ax.set_yticks([])
+    cur_ax.set_title('Model Weights, Colorized')
+    cbar = plt.colorbar(img)
+    cbar.ax.set_yticklabels(['8-like', '', 'Uninteresting', '', '9-like'])
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -216,4 +230,6 @@ if __name__ == "__main__":
     # lossErrorAssessment()
     # hyperparameterSelection(plot=False, pickle_it=True)
     # analyzeErrors()
+    with Path(PICKLE_MODEL).open('rb') as pickle_file:
+        model = pickle.load(pickle_file)
     interpretLearnedWeights()
