@@ -32,6 +32,15 @@ def labelDisplay(y_label):
         return "Unknown"
 
 
+def rowDisplay(row):
+    return str(row + 1)
+
+
+def colDisplay(col):
+    # 65 == 'A' in ASCII
+    return chr(col + 65)
+
+
 def show_images(X, y, row_ids, n_rows=3, n_cols=3):
     ''' Display images
 
@@ -53,7 +62,9 @@ def show_images(X, y, row_ids, n_rows=3, n_cols=3):
         cur_ax.imshow(X[row_id].reshape(28, 28), interpolation='nearest', vmin=0, vmax=1, cmap='gray')
         cur_ax.set_xticks([])
         cur_ax.set_yticks([])
-        cur_ax.set_title(f'True Label={labelDisplay(y[row_id])}')
+        row = ii // n_cols
+        col = ii % n_rows
+        cur_ax.set_title(f'{rowDisplay(row)}{colDisplay(col)}\nTrue Label={labelDisplay(y[row_id])}')
     plt.show()
 
 
@@ -73,10 +84,10 @@ if __name__ == '__main__':
 
     dataset_path = args.dataset_path
 
-    x_df = pd.read_csv(os.path.join(path, dataset_path, 'x_valid.csv'))
+    x_df = pd.read_csv(os.path.join(path, dataset_path, 'x_train.csv'))
     x_NF = x_df.values
 
-    y_df = pd.read_csv(os.path.join(path, dataset_path, 'y_valid.csv'))
+    y_df = pd.read_csv(os.path.join(path, dataset_path, 'y_train.csv'))
     y_N = y_df.values
 
     show_images(x_NF, y_N, row_ids_to_show, args.n_rows, args.n_cols)
