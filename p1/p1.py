@@ -1,20 +1,23 @@
-import os
-import numpy as np
-import pandas as pd
-import pickle
 from pathlib import Path
-
-import sklearn.linear_model
-import sklearn.metrics
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import os
+import pandas as pd
+import pickle
+import sklearn.linear_model
+import sklearn.metrics
 
 from helpers import calc_mean_binary_cross_entropy_from_probas
+from show_images import show_images
+
 
 # Data loading and globals
 path, filename = os.path.split(__file__)
 DATA_DIR = os.path.join(path, 'data_digits_8_vs_9_noisy')  # Make sure you have downloaded data and your directory is correct
-PICKLE_MODEL = os.path.join(path, 'optimal_lrmodel.pkl')
+PICKLE_MODEL = os.path.join(DATA_DIR, 'optimal_lrmodel.pkl')
+FALSE_POSITIVES_FILE = "false_positives_indices.txt"
+FALSE_NEGATIVES_FILE = "false_negatives_indices.txt"
 
 x_tr_M784 = np.loadtxt(os.path.join(DATA_DIR, 'x_train.csv'), delimiter=',', skiprows=1)
 x_va_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_valid.csv'), delimiter=',', skiprows=1)
@@ -170,18 +173,33 @@ def hyperparameterSelection(plot=False, pickle_it=True):
             pickle.dump(chosen_model, pickle_file)
 
 
-def analyzeErrors():
+def analyzeErrors(saveIndices=False):
     """
-    For the selected model from 1C, we might wonder if there is any pattern to the examples the classifier gets wrong.
-    Figure 1D : Produce two plots,
-        one consisting of 9 sample images that are false positives on the validation set,
-        and one consisting of 9 false negatives.
-    You can display the images by converting the pixel data using the matplotlib function imshow(), using the Grey colormap, with vmin=0.0 and vmax=1.0.
-    Place each plot into your PDF as a properly captioned figure.
+    Using a saved model, write to disk
     """
+    # Load saved model
     with Path(PICKLE_MODEL).open('rb') as pickle_file:
         model = pickle.load(pickle_file)
     yclass_va_N = model.predict(x_va_N784)  # The probability of predicting class 1 on the validation set
+
+    # K = the number of incorrectly labeled classes; assumed > 0
+    false_positives = np.argwhere((yclass_va_N != y_va_N) & (y_va_N == 0)).flatten()
+    print(yclass_va_N[false_positives])
+    false_negatives = np.argwhere((yclass_va_N != y_va_N) & (y_va_N == 1)).flatten()
+    print(yclass_va_N[false_negatives])
+
+    # Save the indices for running the show_images script independently
+    if (saveIndices):
+        np.savetxt(os.path.join(DATA_DIR, FALSE_POSITIVES_FILE), false_positives, fmt="%d")
+        np.savetxt(os.path.join(DATA_DIR, FALSE_NEGATIVES_FILE), false_negatives, fmt="%d")
+    n_rows = 3
+    n_cols = 3
+
+    # Sample the first row*col many error instances
+    fp_displayed = false_positives[:n_cols*n_rows]
+    fn_displayed = false_negatives[:n_cols*n_rows]
+    show_images(x_va_N784, y_va_N, fp_displayed, n_rows, n_cols)
+    show_images(x_va_N784, y_va_N, fn_displayed, n_rows, n_cols)
 
 
 if __name__ == "__main__":
