@@ -175,7 +175,8 @@ def hyperparameterSelection(plot=False, pickle_it=True):
 
 def analyzeErrors(saveIndices=False):
     """
-    Using a saved model, write to disk
+    Using a saved model, analyze the FP and FN errors by plotting examples of both incorrect classifications;
+    Interpretations of errors are provided in the p1.md document
     """
     # Load saved model
     with Path(PICKLE_MODEL).open('rb') as pickle_file:
@@ -184,9 +185,7 @@ def analyzeErrors(saveIndices=False):
 
     # K = the number of incorrectly labeled classes; assumed > 0
     false_positives = np.argwhere((yclass_va_N != y_va_N) & (y_va_N == 0)).flatten()
-    print(yclass_va_N[false_positives])
     false_negatives = np.argwhere((yclass_va_N != y_va_N) & (y_va_N == 1)).flatten()
-    print(yclass_va_N[false_negatives])
 
     # Save the indices for running the show_images script independently
     if (saveIndices):
@@ -202,8 +201,19 @@ def analyzeErrors(saveIndices=False):
     show_images(x_va_N784, y_va_N, fn_displayed, n_rows, n_cols)
 
 
+def interpretLearnedWeights():
+    """
+    Should plot a figure that:
+        Reshape the weight coefficients into a (28 × 28) matrix,
+        corresponding to the pixels of the original images,
+        and plot the result using imshow(),
+        with colormap RdYlBu, vmin=-0.5, and vmax=0.5.
+    """
+
+
 if __name__ == "__main__":
     # datasetExploration()
     # lossErrorAssessment()
     # hyperparameterSelection(plot=False, pickle_it=True)
-    analyzeErrors()
+    # analyzeErrors()
+    interpretLearnedWeights()
