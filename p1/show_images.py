@@ -84,10 +84,10 @@ if __name__ == '__main__':
 
     dataset_path = args.dataset_path
 
-    x_df = pd.read_csv(os.path.join(path, dataset_path, 'x_train.csv'))
+    x_df = pd.read_csv(os.path.join(path, dataset_path, 'x_valid.csv'))
     x_NF = x_df.values
 
-    y_df = pd.read_csv(os.path.join(path, dataset_path, 'y_train.csv'))
+    y_df = pd.read_csv(os.path.join(path, dataset_path, 'y_valid.csv'))
     y_N = y_df.values
 
     show_images(x_NF, y_N, row_ids_to_show, args.n_rows, args.n_cols)
