@@ -21,8 +21,6 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     iterations = 40
     iter_step = 1
 
-    lr_models_i = list()
-
     error_tr_lr_i = list()
     error_va_lr_i = list()
 
@@ -32,7 +30,6 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     for i in range(0, iterations, iter_step):
         lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver)
         lr_i.fit(x_tr_M784, y_tr_M)  # Part b
-        lr_models_i.append(lr_i)
 
         yproba1_tr_M = lr_i.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
         yproba1_va_N = lr_i.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
@@ -46,6 +43,9 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     # Plot error & losses
     plot_loss_over_iters(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i,)
     plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i)
+
+    # Plot ROC curve
+    plot_roc_curve(y_va_N, yproba1_va_N)
 
     # Find C value with best bce & error rates
     best_error_ind = error_va_lr_i.index(min(error_va_lr_i))
@@ -82,6 +82,9 @@ def c_selection(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     # Plot error & losses
     plot_error_over_c(C_grid, error_tr_lr_i, error_va_lr_i)
     plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i)
+
+    # Plot ROC curve
+    plot_roc_curve(y_va_N, yproba1_va_N)
 
     # Find C value with best bce & error rates
     best_error_ind = error_va_lr_i.index(min(error_va_lr_i))
@@ -143,5 +146,19 @@ def plot_error_over_c(C_grid, error_tr_lr_i, error_va_lr_i):
     ax.legend()
     plt.savefig('ErrorRateCValues.png')
     plt.show()
+
+def plot_roc_curve(y_va_N, yproba1_va_N):
+    lr_fpr, lr_tpr, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N)
+    fig, ax = plt.subplots()
+
+    # Set up the Error rate subplot
+    ax.plot(lr_fpr, lr_tpr, 'g.-', label='Logistic Regression')
+    ax.set_title('ROC Curve')
+    ax.set_ylabel('error')
+    ax.set_xlabel('TPR')
+    ax.legend()
+    plt.savefig('ROC_curve.png')
+    plt.show()
+
 
     
