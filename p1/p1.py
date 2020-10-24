@@ -219,9 +219,9 @@ def interpretLearnedWeights():
     img = cur_ax.imshow(weights.reshape(28, 28), interpolation='nearest', vmin=-0.5, vmax=0.5, cmap='RdYlBu')
     cur_ax.set_xticks([])
     cur_ax.set_yticks([])
-    cur_ax.set_title('Model Weights, Colorized')
+    cur_ax.set_title('MINST 8/9 Logistic Regression \nClassifier Weights, Colorized')
     cbar = plt.colorbar(img)
-    cbar.ax.set_yticklabels(['8-like', '', 'Uninteresting', '', '9-like'])
+    cbar.ax.set_yticklabels(['-0.5\n8-like', '', '0.0\nUninteresting', '', '0.5\n9-like'])
     plt.show()
 
 
