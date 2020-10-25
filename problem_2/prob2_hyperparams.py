@@ -15,10 +15,12 @@ import sklearn.pipeline
 from prob2_basics import *
 from shared_code import *
 
+# This part stolen from dtphelan1
 PICKLE_ORIGINAL_MODEL = 'optimal_lrmodel.pkl'
 
-x_tr_M784 = np.loadtxt('x_train_set.csv', delimiter=',')
-x_va_N784 = np.loadtxt('x_valid_set.csv', delimiter=',')
+DATA_PATH = 'augmented_data'
+x_tr_M784 = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set.csv'), delimiter=',')
+x_va_N784 = np.loadtxt(os.path.join(DATA_PATH, 'x_valid_set.csv'), delimiter=',')
 
 M_shape = x_tr_M784.shape
 N_shape = x_va_N784.shape
@@ -26,8 +28,8 @@ N_shape = x_va_N784.shape
 N = N_shape[0]
 M = M_shape[0]
 
-y_tr_M = np.loadtxt('y_train_set.csv', delimiter=',')
-y_va_N = np.loadtxt('y_valid_set.csv', delimiter=',')
+y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
+y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
 
 def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
     """ A generic function for plotting a list of lines on an axis with common x and y labels
