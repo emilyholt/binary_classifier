@@ -15,10 +15,9 @@ import sklearn.pipeline
 from prob2_basics import *
 from shared_code import *
 
-PICKLE_ORIGINAL_MODEL = 'optimal_lrmodel.pkl'
-
-x_tr_M784 = np.loadtxt('x_train_set.csv', delimiter=',')
-x_va_N784 = np.loadtxt('x_valid_set.csv', delimiter=',')
+DATA_PATH = 'augmented_data'
+x_tr_M784 = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set.csv'), delimiter=',')
+x_va_N784 = np.loadtxt(os.path.join(DATA_PATH, 'x_valid_set.csv'), delimiter=',')
 
 M_shape = x_tr_M784.shape
 N_shape = x_va_N784.shape
@@ -26,8 +25,8 @@ N_shape = x_va_N784.shape
 N = N_shape[0]
 M = M_shape[0]
 
-y_tr_M = np.loadtxt('y_train_set.csv', delimiter=',')
-y_va_N = np.loadtxt('y_valid_set.csv', delimiter=',')
+y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
+y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
 
 
 def penaltySelection(plot=False, pickle_it=True):
@@ -105,10 +104,10 @@ def plot_roc_curve_penalties(y_va_N, yproba1_va_N_no_penalty, yproba1_va_N_l1, y
     ax.plot(lr_fpr_l1, lr_tpr_l1, 'b.-', label='Logistic Regression L1 penalty')
     ax.plot(lr_fpr_l2, lr_tpr_l2, 'r.-', label='Logistic Regression L2 penalty')
     ax.set_title('ROC Curve')
-    ax.set_ylabel('TFR')
-    ax.set_xlabel('TPR')
+    ax.set_ylabel('TPR')
+    ax.set_xlabel('FPR')
     ax.legend()
-    plt.savefig('ROC_curve.png')
+    plt.savefig('ROC_curve_penalities.png')
     plt.show()
 
 

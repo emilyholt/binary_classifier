@@ -14,29 +14,6 @@ import sklearn.metrics
 def calc_mean_binary_cross_entropy_from_probas(ytrue_N, yproba1_N):
     return sklearn.metrics.log_loss(ytrue_N, yproba1_N, labels=[0, 1]) / np.log(2.0)
 
-def train_best(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
-    C = 1e6
-    solver = 'lbfgs'
-    iterations = 40
-
-    lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver)
-    lr_i.fit(x_tr_M784, y_tr_M)  # Part b
-
-    yproba1_tr_M = lr_i.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
-    yproba1_va_N = lr_i.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
-
-    # Plot ROC curve
-    plot_roc_curve(y_va_N, yproba1_va_N)
-
-    # Find C value with best bce & error rates
-    
-    train_bce = calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M)
-    valid_bce = calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N)
-
-    print(f"Train BCE = {train_bce}")
-    print(f"Train BCE = {valid_bce}")
-
-
 def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
     C = 1e6
