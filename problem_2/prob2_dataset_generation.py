@@ -73,12 +73,17 @@ def split_into_train_and_valid(n_valid_samples=2000, random_state=None):
     print(f"train_pos total = {train_pos}")
     valid_pos = np.count_nonzero(y_valid_set == 1.0)
     print(f"valid_pos total = {valid_pos}")
-    return x_train_set, y_train_set, x_valid_set, y_valid_set
+
+    OUTPUT_DIR = 'augmented_data'
+    np.savetxt(os.path.join(OUTPUT_DIR, 'x_train_set.csv'), x_train_set, delimiter=',', fmt='%g')
+    np.savetxt(os.path.join(OUTPUT_DIR, 'y_train_set.csv'), y_train_set, delimiter=',', fmt='%g')
+    np.savetxt(os.path.join(OUTPUT_DIR, 'x_valid_set.csv'), x_valid_set, delimiter=',', fmt='%g')
+    np.savetxt(os.path.join(OUTPUT_DIR, 'y_valid_set.csv'), y_valid_set, delimiter=',', fmt='%g')
+    print("Finished writing files")
 
 
 if __name__ == '__main__':
     data_exploration()
-    x_train_set, y_train_set, x_valid_set, y_valid_set = split_into_train_and_valid(n_valid_samples=2000, random_state=None)
-    # lossAssessment(x_train_set, y_train_set, x_valid_set, y_valid_set)
-    c_selection(x_train_set, y_train_set, x_valid_set, y_valid_set)
+    split_into_train_and_valid(n_valid_samples=2000, random_state=None)
+
     
