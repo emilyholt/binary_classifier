@@ -11,8 +11,10 @@ import pandas as pd
 import sklearn.linear_model
 import sklearn.metrics
 
+
 def calc_mean_binary_cross_entropy_from_probas(ytrue_N, yproba1_N):
     return sklearn.metrics.log_loss(ytrue_N, yproba1_N, labels=[0, 1]) / np.log(2.0)
+
 
 def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
@@ -39,7 +41,7 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
 
         bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
         bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
-    
+
     # Plot error & losses
     plot_loss_over_iters(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i,)
     plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i)
@@ -52,6 +54,7 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     best_bce_ind = bce_va_lr_i.index(min(bce_va_lr_i))
     print(f"number of iterations with lowest error = {best_error_ind + 1}")
     print(f"number of iterations with lowest bce = {best_bce_ind + 1}")
+
 
 def c_selection(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
     # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
@@ -78,7 +81,7 @@ def c_selection(x_tr_M784, y_tr_M, x_va_N784, y_va_N):
 
         bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
         bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
-    
+
     # Plot error & losses
     plot_error_over_c(C_grid, error_tr_lr_i, error_va_lr_i)
     plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i)
@@ -103,8 +106,9 @@ def plot_loss_over_iters(iterations, iter_step, bce_tr_lr_i, bce_va_lr_i):
     ax.set_ylabel('loss')
     ax.set_xlabel("number of iterations")
     ax.legend()
-    plt.savefig('LogLossIterations.png')
+    plt.savefig('output-figures/LogLossIterations.png')
     plt.show()
+
 
 def plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i):
     fig, ax = plt.subplots()
@@ -116,8 +120,9 @@ def plot_error_over_iters(iterations, iter_step, error_tr_lr_i, error_va_lr_i):
     ax.set_ylabel('error')
     ax.set_xlabel("number of iterations")
     ax.legend()
-    plt.savefig('ErrorRateIterations.png')
+    plt.savefig('output-figures/ErrorRateIterations.png')
     plt.show()
+
 
 def plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i):
     fig, ax = plt.subplots()
@@ -130,12 +135,13 @@ def plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i):
     ax.set_ylabel('loss')
     ax.set_xlabel("log_{10} C values")
     ax.legend()
-    plt.savefig('LogLossCValues.png')
+    plt.savefig('output-figures/LogLossCValues.png')
     plt.show()
+
 
 def plot_error_over_c(C_grid, error_tr_lr_i, error_va_lr_i):
     fig, ax = plt.subplots()
-    
+
     # Set up the Error rate subplot
     x = np.log10(C_grid)
     ax.plot(x, error_tr_lr_i, 'b:', label='train')
@@ -144,8 +150,9 @@ def plot_error_over_c(C_grid, error_tr_lr_i, error_va_lr_i):
     ax.set_ylabel('Error Rate')
     ax.set_xlabel("log_{10} C values")
     ax.legend()
-    plt.savefig('ErrorRateCValues.png')
+    plt.savefig('output-figures/ErrorRateCValues.png')
     plt.show()
+
 
 def plot_roc_curve(y_va_N, yproba1_va_N):
     lr_fpr, lr_tpr, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N)
@@ -157,8 +164,5 @@ def plot_roc_curve(y_va_N, yproba1_va_N):
     ax.set_ylabel('TFR')
     ax.set_xlabel('TPR')
     ax.legend()
-    plt.savefig('ROC_curve.png')
+    plt.savefig('output-figures/ROC_curve.png')
     plt.show()
-
-
-    

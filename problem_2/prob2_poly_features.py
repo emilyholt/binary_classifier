@@ -25,6 +25,7 @@ M = M_shape[0]
 y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
 y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
 
+
 def poly_features_expr():
 
     # Using sklearn.linear_model.LogisticRegression, you should fit a logistic regression models to your training split.
@@ -42,11 +43,11 @@ def poly_features_expr():
     poly_degrees = [1, 2]
 
     for ii, degree in enumerate(poly_degrees):
-        
+
         pipeline = sklearn.pipeline.Pipeline([
-            ("step1", sklearn.preprocessing.PolynomialFeatures(degree)), # create custom Poly featurizer
+            ("step1", sklearn.preprocessing.PolynomialFeatures(degree)),  # create custom Poly featurizer
             ("step2", sklearn.linear_model.LogisticRegression(max_iter=iterations, C=C, solver=solver)),
-            ])
+        ])
 
         # Train the model
         print(f"Fitting model with poly degree {degree}")
@@ -61,10 +62,10 @@ def poly_features_expr():
 
         bce_tr_pipeline_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
         bce_va_pipeline_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
-    
+
         print("degree %3d | train error % 10.3f | valid error %10.3f" % (
             degree, error_tr_pipeline_i[ii], error_va_pipeline_i[ii]))
-    
+
     plot_loss_over_poly_degrees(poly_degrees, bce_tr_pipeline_i, bce_va_pipeline_i,)
     plot_error_over_poly_degrees(poly_degrees, error_tr_pipeline_i, error_va_pipeline_i)
 
@@ -77,7 +78,7 @@ def poly_features_expr():
 
     best_bce_ind = bce_va_pipeline_i.index(min(bce_va_pipeline_i))
     print(f"BCE values = {bce_va_pipeline_i}")
-    
+
     print(f"poly degree with lowest error = {best_error_ind + 1}")
     print(f"poly degree with lowest bce = {best_bce_ind + 1}")
 
@@ -89,7 +90,6 @@ def poly_features_expr():
     yproba1_va_N = chosen_model.predict_proba(x_va_N784)[:, 1]
     plot_roc_curve(y_va_N, yproba1_va_N)
 
-    
 
 def plot_loss_over_poly_degrees(poly_degrees, bce_tr_pipeline_i, bce_va_pipeline_i):
     fig, ax = plt.subplots()
@@ -101,8 +101,9 @@ def plot_loss_over_poly_degrees(poly_degrees, bce_tr_pipeline_i, bce_va_pipeline
     ax.set_ylabel('loss')
     ax.set_xlabel("Polynomial degree")
     ax.legend()
-    plt.savefig('LogLossPolynomialDegrees.png')
+    plt.savefig('output-figures/LogLossPolynomialDegrees.png')
     plt.show()
+
 
 def plot_error_over_poly_degrees(poly_degrees, error_tr_pipeline_i, error_va_pipeline_i):
     fig, ax = plt.subplots()
@@ -114,11 +115,11 @@ def plot_error_over_poly_degrees(poly_degrees, error_tr_pipeline_i, error_va_pip
     ax.set_ylabel('Error')
     ax.set_xlabel("Polynomial degree")
     ax.legend()
-    plt.savefig('ErrorRatePolynomialDegrees.png')
+    plt.savefig('output-figures/ErrorRatePolynomialDegrees.png')
     plt.show()
+
 
 if __name__ == '__main__':
     # data_exploration()
     # x_train_set, y_train_set, x_valid_set, y_valid_set = split_into_train_and_valid(n_valid_samples=2000, random_state=None)
     poly_features_expr()
-

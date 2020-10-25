@@ -29,6 +29,7 @@ M = M_shape[0]
 y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
 y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
 
+
 def knn_classifier():
     solver = 'lbfgs'
     max_neighbors = 11
@@ -57,7 +58,7 @@ def knn_classifier():
 
         bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
         bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
-    
+
     # Plot error & losses
     plot_loss_over_neighbors(neighbors, bce_tr_lr_i, bce_va_lr_i,)
     plot_error_over_neighbors(neighbors, error_tr_lr_i, error_va_lr_i)
@@ -90,7 +91,7 @@ def plot_loss_over_neighbors(neighbors, bce_tr_lr_i, bce_va_lr_i):
     ax.set_ylabel('loss')
     ax.set_xlabel("Number of neighbors")
     ax.legend()
-    plt.savefig('LogLossNeighbors.png')
+    plt.savefig('output-figures/LogLossNeighbors.png')
     plt.show()
 
 
@@ -104,8 +105,9 @@ def plot_error_over_neighbors(neighbors, error_tr_lr_i, error_va_lr_i):
     ax.set_ylabel('error')
     ax.set_xlabel("number of neighbors")
     ax.legend()
-    plt.savefig('ErrorRateNeighbors.png')
+    plt.savefig('output-figures/ErrorRateNeighbors.png')
     plt.show()
+
 
 def plot_knn_roc_curve(y_va_N, yproba1_va_N):
     lr_fpr, lr_tpr, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N)
@@ -117,9 +119,9 @@ def plot_knn_roc_curve(y_va_N, yproba1_va_N):
     ax.set_ylabel('TPR')
     ax.set_xlabel('FPR')
     ax.legend()
-    plt.savefig('ROC_curve_knn.png')
+    plt.savefig('output-figures/ROC_curve_knn.png')
     plt.show()
+
 
 if __name__ == '__main__':
     knn_classifier()
-    
