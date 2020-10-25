@@ -9,6 +9,9 @@ import pickle
 import sklearn.linear_model
 import sklearn.metrics
 
+from shared_code import calc_mean_binary_cross_entropy_from_probas, plot_loss_over_c, plot_error_over_c, plot_roc_curve
+from prob2_dataset_splitting import split_into_train_and_valid
+
 
 # This part stolen from dtphelan1
 PICKLE_DIR = "output_models"
@@ -26,36 +29,6 @@ M = M_shape[0]
 
 y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
 y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
-
-
-def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
-    """ A generic function for plotting a list of lines on an axis with common x and y labels
-    """
-    for (y_data, line_type, label) in lines_with_labels:
-        plot.plot(x, y_data, line_type, label=label)
-    plot.set_title(title)
-    plot.set_ylabel(ylabel)
-    plot.set_xlabel(xlabel)
-    plot.legend()
-
-
-def plotError(plot, title, x, xlabel, error_tr, error_va):
-    ylabel = 'error'
-    tr_line = (error_tr, 'b.-', 'train')
-    va_line = (error_va, 'r.-', 'valid')
-    linePlot(plot, title, xlabel, ylabel, x, tr_line, va_line)
-
-
-def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
-    """ Plot Error values for training and validation sets
-        as a function of different C-hyperparameters
-    """
-    x = np.log10(C_grid)
-    xlabel = "log_{10} C"
-    err_title = "Error over C-values"
-    # Set up the Error rate subplot
-    plotError(plt.gca(), err_title, x, xlabel, error_tr_lr_c, error_va_lr_c)
-    plt.show()
 
 
 def hyperparameterSelection(plot=False, pickle_it=True):
@@ -92,8 +65,8 @@ def hyperparameterSelection(plot=False, pickle_it=True):
 
     # Conditionally plot the model
     if plot:
-        plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c)
-        plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i)
+        plot_error_over_c(C_grid, error_tr_lr_c, error_va_lr_c, 'output-figures/ErrorRateCValues_baseline.png')
+        plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i, 'output-figures/LogLossCValues_baseline.png')
 
     min_c_index = np.argmin(error_va_lr_c)
     min_c = C_grid[min_c_index]
@@ -105,23 +78,12 @@ def hyperparameterSelection(plot=False, pickle_it=True):
     return chosen_model
 
 
-def plot_roc_curve(y_va_N, yproba1_va_N):
-    lr_fpr, lr_tpr, _ = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N)
-    fig, ax = plt.subplots()
-
-    # Set up the Error rate subplot
-    ax.plot(lr_fpr, lr_tpr, 'g.-', label='Logistic Regression')
-    ax.set_title('ROC Curve')
-    ax.set_ylabel('TFR')
-    ax.set_xlabel('TPR')
-    ax.legend()
-    plt.savefig('output-figures/ROC_curve_baseline.png')
-    plt.show()
-
-
 if __name__ == '__main__':
+    # For consistent splits, use a random_state param
+    random_state = 100
     split_into_train_and_valid(n_valid_samples=2000, random_state=random_state)
     optimal_model = hyperparameterSelection(plot=True, pickle_it=True)
     yproba1_tr_M = optimal_model.predict_proba(x_tr_M784)[:, 1]
     yproba1_va_N = optimal_model.predict_proba(x_va_N784)[:, 1]
-    plot_roc_curve(y_va_N, yproba1_va_N)
+    plot_roc_curve(y_va_N, yproba1_va_N, 'output-figures/ROC_curve_baseline.png')
+    print("Finished training, then selecting optimal baseline model and plotting related figures")
