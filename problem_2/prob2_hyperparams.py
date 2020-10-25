@@ -31,6 +31,7 @@ M = M_shape[0]
 y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
 y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
 
+
 def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
     """ A generic function for plotting a list of lines on an axis with common x and y labels
     """
@@ -41,11 +42,13 @@ def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
     plot.set_xlabel(xlabel)
     plot.legend()
 
+
 def plotError(plot, title, x, xlabel, error_tr, error_va):
     ylabel = 'error'
     tr_line = (error_tr, 'b.-', 'train')
     va_line = (error_va, 'r.-', 'valid')
     linePlot(plot, title, xlabel, ylabel, x, tr_line, va_line)
+
 
 def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
     """ Plot Error values for training and validation sets
@@ -58,6 +61,7 @@ def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
     # Set up the Error rate subplot
     plotError(plt.gca(), err_title, x, xlabel, error_tr_lr_c, error_va_lr_c)
     plt.show()
+
 
 def hyperparameterSelection(plot=False, pickle_it=True):
     """ Iterate over our C_grid to see which hyperparameter gives us the best performance
@@ -95,7 +99,6 @@ def hyperparameterSelection(plot=False, pickle_it=True):
         plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c)
         plot_loss_over_c(C_grid, bce_tr_lr_i, bce_va_lr_i)
 
-
     min_c_index = np.argmin(error_va_lr_c)
     min_c = C_grid[min_c_index]
     print("min_c", min_c)
@@ -108,6 +111,7 @@ def hyperparameterSelection(plot=False, pickle_it=True):
     yproba1_va_N = chosen_model.predict_proba(x_va_N784)[:, 1]
     plot_roc_curve(y_va_N, yproba1_va_N)
 
+
 def plot_roc_curve(y_va_N, yproba1_va_N):
     lr_fpr, lr_tpr, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N)
     fig, ax = plt.subplots()
@@ -118,8 +122,9 @@ def plot_roc_curve(y_va_N, yproba1_va_N):
     ax.set_ylabel('TFR')
     ax.set_xlabel('TPR')
     ax.legend()
-    plt.savefig('ROC_curve.png')
+    plt.savefig('output-figures/ROC_curve.png')
     plt.show()
+
 
 def plot_loss_over_poly_degrees(poly_degrees, bce_tr_pipeline_i, bce_va_pipeline_i):
     fig, ax = plt.subplots()
@@ -131,10 +136,9 @@ def plot_loss_over_poly_degrees(poly_degrees, bce_tr_pipeline_i, bce_va_pipeline
     ax.set_ylabel('loss')
     ax.set_xlabel("Polynomial degree")
     ax.legend()
-    plt.savefig('LogLossPolynomialDegrees.png')
+    plt.savefig('output-figures/LogLossPolynomialDegrees.png')
     plt.show()
 
 
 if __name__ == '__main__':
     hyperparameterSelection(plot=True, pickle_it=True)
-

@@ -90,8 +90,9 @@ def penaltySelection(plot=False, pickle_it=True):
     bce_train_l2 = calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M_l2)
     bce_valid_l2 = calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N_l2)
     print(f"L2 Penalty\n  Train BCE = {bce_train_l2}; Valid BCE = {bce_valid_l2}")
-    
+
     plot_roc_curve_penalties(y_va_N, yproba1_va_N_no_penalty, yproba1_va_N_l1, yproba1_va_N_l2)
+
 
 def plot_roc_curve_penalties(y_va_N, yproba1_va_N_no_penalty, yproba1_va_N_l1, yproba1_va_N_l2):
     lr_fpr_no_penalty, lr_tpr_no_penalty, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N_no_penalty)
@@ -107,11 +108,9 @@ def plot_roc_curve_penalties(y_va_N, yproba1_va_N_no_penalty, yproba1_va_N_l1, y
     ax.set_ylabel('TPR')
     ax.set_xlabel('FPR')
     ax.legend()
-    plt.savefig('ROC_curve_penalities.png')
+    plt.savefig('output-figures/ROC_curve_penalities.png')
     plt.show()
-
 
 
 if __name__ == '__main__':
     penaltySelection(plot=True, pickle_it=True)
-

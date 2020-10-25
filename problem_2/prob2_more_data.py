@@ -44,6 +44,7 @@ M_augmented = M_shape_augmented[0]
 y_tr_M_augmented = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set_augmented.csv'), delimiter=',')
 y_va_N_augmented = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set_augmented.csv'), delimiter=',')
 
+
 def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
     """ A generic function for plotting a list of lines on an axis with common x and y labels
     """
@@ -54,11 +55,13 @@ def linePlot(plot, title, xlabel, ylabel, x, *lines_with_labels):
     plot.set_xlabel(xlabel)
     plot.legend()
 
+
 def plotError(plot, title, x, xlabel, error_tr, error_va):
     ylabel = 'error'
     tr_line = (error_tr, 'b.-', 'train')
     va_line = (error_va, 'r.-', 'valid')
     linePlot(plot, title, xlabel, ylabel, x, tr_line, va_line)
+
 
 def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
     """ Plot Error values for training and validation sets
@@ -70,8 +73,9 @@ def plotHyperparameterError(C_grid, error_tr_lr_c, error_va_lr_c):
     xscale = "log"
     # Set up the Error rate subplot
     plotError(plt.gca(), err_title, x, xlabel, error_tr_lr_c, error_va_lr_c)
-    plt.savefig('ErrorRateMoreData.png')
+    plt.savefig('output-figures/ErrorRateMoreData.png')
     plt.show()
+
 
 def plot_roc_curve(y_va_N, yproba1_va_N, y_va_N_augmented, yproba1_va_N_augmented):
     lr_fpr, lr_tpr, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N)
@@ -85,8 +89,9 @@ def plot_roc_curve(y_va_N, yproba1_va_N, y_va_N_augmented, yproba1_va_N_augmente
     ax.set_ylabel('TPR')
     ax.set_xlabel('FPR')
     ax.legend()
-    plt.savefig('ROC_curve_moredata.png')
+    plt.savefig('output-figures/ROC_curve_moredata.png')
     plt.show()
+
 
 def hyperparameterSelectionWithMoreData(plot=True, pickle_it=True):
     """ Iterate over our C_grid to see which hyperparameter gives us the best performance
@@ -135,7 +140,7 @@ def hyperparameterSelectionWithMoreData(plot=True, pickle_it=True):
     with Path(PICKLE_ORIGINAL_MODEL).open('rb') as pickle_file:
         model = pickle.load(pickle_file)
     yproba1_va_N = model.predict(x_va_N784)
-    
+
     # Use chose model to plot metrics
     yproba1_tr_M_augmented = chosen_model.predict_proba(x_tr_M784_augmented)[:, 1]
     yproba1_va_N_augmented = chosen_model.predict_proba(x_va_N784_augmented)[:, 1]
@@ -144,4 +149,3 @@ def hyperparameterSelectionWithMoreData(plot=True, pickle_it=True):
 
 if __name__ == '__main__':
     hyperparameterSelectionWithMoreData(plot=False, pickle_it=True)
-
