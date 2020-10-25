@@ -24,7 +24,6 @@ def show_images(X, row_id):
     fig, ax = plt.subplots()
     original_X = X[row_id].reshape(28,28)
     ax.imshow(original_X, interpolation='nearest', vmin=0, vmax=1, cmap='gray')
-    # plt.show()
     flipped_x = np.fliplr(original_X)
     ax.imshow(flipped_x, interpolation='nearest', vmin=0, vmax=1, cmap='gray')
     plt.show()
@@ -37,10 +36,8 @@ x_NF = x_df.values
 with open(os.path.join(dataset_path, 'x_train_augmented.csv'), 'a') as output:
 	output_writer = csv.writer(output)
 	for x in x_NF:
-		# print(f"x = {x}")
 		original_X = x.reshape(28,28)
 		flipped_x = np.fliplr(original_X)
-		# print(f"flipped_x = {flipped_x.flatten()}")
 		output_writer.writerow(flipped_x.flatten())
 
 
