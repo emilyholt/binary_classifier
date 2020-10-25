@@ -15,7 +15,8 @@ import sklearn.pipeline
 from prob2_basics import *
 from shared_code import *
 
-PICKLE_ORIGINAL_MODEL = 'optimal_lrmodel.pkl'
+PICKLE_DIR = "output_models"
+PICKLE_ORIGINAL_MODEL = 'baseline_optimal_lrmodel.pkl'
 PICKLE_AUGMENTED_MODEL = 'optimal_lrmodel_augmented.pkl'
 
 DATA_PATH = 'augmented_data'
