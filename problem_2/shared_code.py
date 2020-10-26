@@ -2,6 +2,7 @@
 # Reused for problem 2
 
 import os
+from datetime import datetime
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -99,8 +100,9 @@ def show_images(X, y, row_ids, filepath, n_rows=3, n_cols=3):
     fig, axes = plt.subplots(
         nrows=n_rows, ncols=n_cols,
         figsize=(n_cols * 3, n_rows * 3))
-
+    N = len(N)
     for ii, row_id in enumerate(row_ids):
+        if (row_id >= N)
         cur_ax = axes.flatten()[ii]
         cur_ax.imshow(X[row_id].reshape(28, 28), interpolation='nearest', vmin=0, vmax=1, cmap='gray')
         cur_ax.set_xticks([])
@@ -122,6 +124,9 @@ def analyzeMistakes(x_va_N784, y_va_N, model_path, base_filepath):
         model = pickle.load(pickle_file)
     yclass_va_N = model.predict(x_va_N784)  # The probability of predicting class 1 on the validation set
 
+    # Print the confusion matrix for context:
+    print(sklearn.metrics.confusion_matrix(y_va_N, model.predict(x_va_N784)))
+
     # K = the number of incorrectly labeled classes; assumed > 0
     false_positives = np.argwhere((yclass_va_N != y_va_N) & (y_va_N == 0)).flatten()
     false_negatives = np.argwhere((yclass_va_N != y_va_N) & (y_va_N == 1)).flatten()
@@ -137,3 +142,16 @@ def analyzeMistakes(x_va_N784, y_va_N, model_path, base_filepath):
     fn_filepath = base_filepath.split('.png')[0] + "_fn.png"
     show_images(x_va_N784, y_va_N, fp_displayed, fp_filepath, n_rows, n_cols)
     show_images(x_va_N784, y_va_N, fn_displayed, fn_filepath, n_rows, n_cols)
+
+
+def runModelOnTest(model_path, x_tr_N784, filepath):
+    """
+    Given a model, a training set and a filepath at which to save the results,
+    run the model and calculate the predictions of doing so.
+    """
+    # NOTE: ASSUME CSV
+    with Path(model_path).open('rb') as pickle_file:
+        model = pickle.load(pickle_file)
+    filepath = filepath.split('.txt')[0] + str(datetime.now(tz=None)) + '.txt'
+    y_tr_N = model.predict_proba(x_tr_N784)[:, 1]
+    np.savetxt(filepath, y_tr_N, delimiter=',', fmt='%g')

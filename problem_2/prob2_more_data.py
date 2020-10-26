@@ -23,24 +23,12 @@ DATA_PATH = 'augmented_data'
 x_tr_M784 = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set.csv'), delimiter=',')
 x_va_N784 = np.loadtxt(os.path.join(DATA_PATH, 'x_valid_set.csv'), delimiter=',')
 
-M_shape = x_tr_M784.shape
-N_shape = x_va_N784.shape
-
-N = N_shape[0]
-M = M_shape[0]
-
 y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
 y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
 
 # Load augmented data too
 x_tr_M784_augmented = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set_augmented.csv'), delimiter=',')
 x_va_N784_augmented = np.loadtxt(os.path.join(DATA_PATH, 'x_valid_set_augmented.csv'), delimiter=',')
-
-M_shape_augmented = x_tr_M784.shape
-N_shape_augmented = x_va_N784.shape
-
-N_augmented = N_shape_augmented[0]
-M_augmented = M_shape_augmented[0]
 
 y_tr_M_augmented = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set_augmented.csv'), delimiter=',')
 y_va_N_augmented = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set_augmented.csv'), delimiter=',')

@@ -14,19 +14,29 @@ from shared_code import (
     plot_loss_over_c,
     plot_error_over_c,
     plot_roc_curve,
-    analyzeMistakes
+    analyzeMistakes,
+    runModelOnTest
 )
 from prob2_dataset_splitting import split_into_train_and_valid
 
+RANDOM_STATE = 1234
 
-# This part stolen from dtphelan1
+# Where to load the incoming data from
+DATA_DIR = 'data_sneaker_vs_sandal'
+x_tr_M784 = np.loadtxt(os.path.join(DATA_DIR, 'x_train_set.csv'), delimiter=',')
+x_va_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_valid_set.csv'), delimiter=',')
+x_te_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_test.csv'), delimiter=',', skiprows=1)
+
+# Where to output the optimal model
 PICKLE_DIR = "output_models"
-PICKLE_ORIGINAL_MODEL = 'baseline_optimal_lrmodel.pkl'
-PICKLE_FILEPATH = os.path.join(PICKLE_DIR, PICKLE_ORIGINAL_MODEL)
+PICKLE_BASELINE_MODEL = 'baseline_optimal_lrmodel.pkl'
+PICKLE_BASELINE_FILEPATH = os.path.join(PICKLE_DIR, PICKLE_BASELINE_MODEL)
+# PICKLE_BASELINE_MODEL = 'optimal_lrmodel.pkl'
+# PICKLE_BASELINE_FILEPATH = os.path.join(PICKLE_DIR, PICKLE_BASELINE_MODEL)
 
-DATA_PATH = 'data_sneaker_vs_sandal'
-x_tr_M784 = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set.csv'), delimiter=',')
-x_va_N784 = np.loadtxt(os.path.join(DATA_PATH, 'x_valid_set.csv'), delimiter=',')
+# Where to output the results of running on test:
+RESULTS_DIR = 'output_predictions'
+TEST_PRED_FILEPATH = os.path.join(RESULTS_DIR, 'yproba1_test_baseline_2.txt')
 
 M_shape = x_tr_M784.shape
 N_shape = x_va_N784.shape
@@ -34,8 +44,8 @@ N_shape = x_va_N784.shape
 N = N_shape[0]
 M = M_shape[0]
 
-y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
-y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
+y_tr_M = np.loadtxt(os.path.join(DATA_DIR, 'y_train_set.csv'), delimiter=',')
+y_va_N = np.loadtxt(os.path.join(DATA_DIR, 'y_valid_set.csv'), delimiter=',')
 
 
 def hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=1000):
@@ -55,7 +65,7 @@ def hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=1000)
 
     for C in C_grid:
         # Build and evaluate model for this C value
-        lr_c = sklearn.linear_model.LogisticRegression(max_iter=max_iter, C=C, solver=solver)
+        lr_c = sklearn.linear_model.LogisticRegression(max_iter=max_iter, C=C, solver=solver, random_state=RANDOM_STATE)
         lr_c.fit(x_tr_M784, y_tr_M)  # Part b
         lr_models_c.append(lr_c)
 
@@ -76,9 +86,9 @@ def hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=1000)
     optimal_c = C_grid[optimal_c_index]
     print("optimal_c", optimal_c)
 
-    # Pickle_and_save optimal model
+    # Pickle and save optimal model
     chosen_model = lr_models_c[optimal_c_index]
-    with Path(PICKLE_FILEPATH).open('wb') as pickle_file:
+    with Path(PICKLE_BASELINE_FILEPATH).open('wb') as pickle_file:
         pickle.dump(chosen_model, pickle_file)
     return (optimal_c, chosen_model)
 
@@ -131,7 +141,7 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N, C=1e6):
     bce_va_lr_i = list()
 
     for i in range(0, iterations, iter_step):
-        lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver)
+        lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver, random_state=RANDOM_STATE)
         lr_i.fit(x_tr_M784, y_tr_M)  # Part b
         lr_models_i.append(lr_i)
 
@@ -163,20 +173,25 @@ def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N, C=1e6):
 
 
 if __name__ == '__main__':
-    # Uncomment these two lines if you need to generate a fresh train-validation
-    # random_state = 100
-    # split_into_train_and_valid(n_valid_samples=2000, random_state=random_state)
+    # # Uncomment these two lines if you need to generate a fresh train-validation
+    # # split_into_train_and_valid(n_valid_samples=2000, random_state=RANDOM_STATE)
 
-    # Optimize the model's hyperparameters
-    (optimal_iters, _) = lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N)
-    (_, optimal_model) = hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=optimal_iters)
+    # # Optimize the model's hyperparameters
+    # (optimal_iters, _) = lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N)
+    # (_, optimal_model) = hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=optimal_iters)
 
-    # # See the results of our optimization
-    yproba1_tr_M = optimal_model.predict_proba(x_tr_M784)[:, 1]
-    yproba1_va_N = optimal_model.predict_proba(x_va_N784)[:, 1]
-    plot_roc_curve(y_va_N, yproba1_va_N, 'output-figures/ROC_curve_baseline.png')
+    # # # See the results of our optimization
+    # yproba1_tr_M = optimal_model.predict_proba(x_tr_M784)[:, 1]
+    # yproba1_va_N = optimal_model.predict_proba(x_va_N784)[:, 1]
+    # plot_roc_curve(y_va_N, yproba1_va_N, 'output-figures/ROC_curve_baseline.png')
 
-    print(sklearn.metrics.confusion_matrix(y_va_N, optimal_model.predict(x_va_N784)))
-    # Analyze the Mistakes:
-    analyzeMistakes(x_va_N784, y_va_N, PICKLE_FILEPATH, 'output-figures/mistakes_baseline')
-    print("Finished training, then selecting optimal baseline model and plotting related figures")
+    # print(sklearn.metrics.confusion_matrix(y_va_N, optimal_model.predict(x_va_N784)))
+    # # # Analyze the Mistakes:
+    analyzeMistakes(x_va_N784, y_va_N, PICKLE_BASELINE_FILEPATH, os.path.join('output-figures', 'mistakes_baseline.png'))
+
+    # # Interpret weights
+    # # TODO:
+
+    # Run and save results against test
+    # runModelOnTest(PICKLE_BASELINE_FILEPATH, x_te_N784, TEST_PRED_FILEPATH)
+    # print("Finished training, then selecting optimal baseline model and plotting related figures")
