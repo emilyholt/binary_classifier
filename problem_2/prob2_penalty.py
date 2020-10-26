@@ -12,24 +12,19 @@ import sklearn.metrics
 import sklearn.neighbors
 import sklearn.pipeline
 
-from prob2_basics import *
-from shared_code import *
+from shared_code import calc_mean_binary_cross_entropy_from_probas
 
-DATA_PATH = 'augmented_data'
-x_tr_M784 = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set.csv'), delimiter=',')
-x_va_N784 = np.loadtxt(os.path.join(DATA_PATH, 'x_valid_set.csv'), delimiter=',')
+RANDOM_STATE = 1234
 
-M_shape = x_tr_M784.shape
-N_shape = x_va_N784.shape
+DATA_DIR = 'data_sneaker_vs_sandal'
+x_tr_M784 = np.loadtxt(os.path.join(DATA_DIR, 'x_train_set.csv'), delimiter=',')
+x_va_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_valid_set.csv'), delimiter=',')
 
-N = N_shape[0]
-M = M_shape[0]
-
-y_tr_M = np.loadtxt(os.path.join(DATA_PATH, 'y_train_set.csv'), delimiter=',')
-y_va_N = np.loadtxt(os.path.join(DATA_PATH, 'y_valid_set.csv'), delimiter=',')
+y_tr_M = np.loadtxt(os.path.join(DATA_DIR, 'y_train_set.csv'), delimiter=',')
+y_va_N = np.loadtxt(os.path.join(DATA_DIR, 'y_valid_set.csv'), delimiter=',')
 
 
-def penaltySelection(plot=False, pickle_it=True):
+def penaltySelection(pickle_it=True):
     """ Iterate over our C_grid to see which hyperparameter gives us the best performance
     """
     # C_grid = np.logspace(-9, 6, 31)
@@ -39,7 +34,7 @@ def penaltySelection(plot=False, pickle_it=True):
 
     # No penalty
     # Build and evaluate model for this C value
-    lr_no_penalty = sklearn.linear_model.LogisticRegression(penalty='none', max_iter=max_iter, C=C, solver=solver)
+    lr_no_penalty = sklearn.linear_model.LogisticRegression(penalty='none', max_iter=max_iter, C=C, solver=solver, random_state=RANDOM_STATE)
     lr_no_penalty.fit(x_tr_M784, y_tr_M)  # Part b
 
     # Record training and validation set error rate
@@ -58,7 +53,8 @@ def penaltySelection(plot=False, pickle_it=True):
 
     # L1 Penalty
     # Build and evaluate model for this C value
-    lr_l1 = sklearn.linear_model.LogisticRegression(penalty='l1', max_iter=max_iter, C=C, solver='liblinear')
+    # NOTE: Changing the solver here because LBGFS isn't compatible with L1 loss penalty
+    lr_l1 = sklearn.linear_model.LogisticRegression(penalty='l1', max_iter=max_iter, C=C, solver='liblinear', random_state=RANDOM_STATE)
     lr_l1.fit(x_tr_M784, y_tr_M)  # Part b
 
     # Record training and validation set error rate
@@ -76,7 +72,7 @@ def penaltySelection(plot=False, pickle_it=True):
     ########################################################
 
     # L2 Penalty
-    lr_l2 = sklearn.linear_model.LogisticRegression(penalty='l2', max_iter=max_iter, C=C, solver=solver)
+    lr_l2 = sklearn.linear_model.LogisticRegression(penalty='l2', max_iter=max_iter, C=C, solver=solver, random_state=RANDOM_STATE)
     lr_l2.fit(x_tr_M784, y_tr_M)  # Part b
 
     # Record training and validation set error rate
@@ -95,7 +91,7 @@ def penaltySelection(plot=False, pickle_it=True):
 
 
 def plot_roc_curve_penalties(y_va_N, yproba1_va_N_no_penalty, yproba1_va_N_l1, yproba1_va_N_l2):
-    lr_fpr_no_penalty, lr_tpr_no_penalty, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N_no_penalty)
+    lr_fpr_no_penalty, lr_tpr_no_penalty, _ = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N_no_penalty)
     lr_fpr_l1, lr_tpr_l1, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N_l1)
     lr_fpr_l2, lr_tpr_l2, ignore_this = sklearn.metrics.roc_curve(y_va_N, yproba1_va_N_l2)
     fig, ax = plt.subplots()
@@ -108,9 +104,9 @@ def plot_roc_curve_penalties(y_va_N, yproba1_va_N_no_penalty, yproba1_va_N_l1, y
     ax.set_ylabel('TPR')
     ax.set_xlabel('FPR')
     ax.legend()
-    plt.savefig('output-figures/ROC_curve_penalities.png')
+    plt.savefig('output-figures/ROC_curve_all_penalities.png')
     plt.show()
 
 
 if __name__ == '__main__':
-    penaltySelection(plot=True, pickle_it=True)
+    penaltySelection()

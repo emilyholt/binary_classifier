@@ -100,9 +100,7 @@ def show_images(X, y, row_ids, filepath, n_rows=3, n_cols=3):
     fig, axes = plt.subplots(
         nrows=n_rows, ncols=n_cols,
         figsize=(n_cols * 3, n_rows * 3))
-    N = len(N)
     for ii, row_id in enumerate(row_ids):
-        if (row_id >= N)
         cur_ax = axes.flatten()[ii]
         cur_ax.imshow(X[row_id].reshape(28, 28), interpolation='nearest', vmin=0, vmax=1, cmap='gray')
         cur_ax.set_xticks([])
