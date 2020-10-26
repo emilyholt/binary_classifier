@@ -9,13 +9,20 @@ import pickle
 import sklearn.linear_model
 import sklearn.metrics
 
-from shared_code import calc_mean_binary_cross_entropy_from_probas, plot_loss_over_c, plot_error_over_c, plot_roc_curve
+from shared_code import (
+    calc_mean_binary_cross_entropy_from_probas,
+    plot_loss_over_c,
+    plot_error_over_c,
+    plot_roc_curve,
+    analyzeMistakes
+)
 from prob2_dataset_splitting import split_into_train_and_valid
 
 
 # This part stolen from dtphelan1
 PICKLE_DIR = "output_models"
 PICKLE_ORIGINAL_MODEL = 'baseline_optimal_lrmodel.pkl'
+PICKLE_FILEPATH = os.path.join(PICKLE_DIR, PICKLE_ORIGINAL_MODEL)
 
 DATA_PATH = 'data_sneaker_vs_sandal'
 x_tr_M784 = np.loadtxt(os.path.join(DATA_PATH, 'x_train_set.csv'), delimiter=',')
@@ -71,7 +78,7 @@ def hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=1000)
 
     # Pickle_and_save optimal model
     chosen_model = lr_models_c[optimal_c_index]
-    with Path(os.path.join(PICKLE_DIR, PICKLE_ORIGINAL_MODEL)).open('wb') as pickle_file:
+    with Path(PICKLE_FILEPATH).open('wb') as pickle_file:
         pickle.dump(chosen_model, pickle_file)
     return (optimal_c, chosen_model)
 
@@ -159,9 +166,17 @@ if __name__ == '__main__':
     # Uncomment these two lines if you need to generate a fresh train-validation
     # random_state = 100
     # split_into_train_and_valid(n_valid_samples=2000, random_state=random_state)
+
+    # Optimize the model's hyperparameters
     (optimal_iters, _) = lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N)
     (_, optimal_model) = hyperparameterSelection(x_tr_M784, y_tr_M, x_va_N784, y_va_N, max_iter=optimal_iters)
+
+    # # See the results of our optimization
     yproba1_tr_M = optimal_model.predict_proba(x_tr_M784)[:, 1]
     yproba1_va_N = optimal_model.predict_proba(x_va_N784)[:, 1]
     plot_roc_curve(y_va_N, yproba1_va_N, 'output-figures/ROC_curve_baseline.png')
+
+    print(sklearn.metrics.confusion_matrix(y_va_N, optimal_model.predict(x_va_N784)))
+    # Analyze the Mistakes:
+    analyzeMistakes(x_va_N784, y_va_N, PICKLE_FILEPATH, 'output-figures/mistakes_baseline')
     print("Finished training, then selecting optimal baseline model and plotting related figures")
