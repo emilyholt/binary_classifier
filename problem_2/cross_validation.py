@@ -6,13 +6,27 @@ import numpy as np
 
 from shared_code import *
 
-DATA_DIR = 'data_sneaker_vs_sandal'
 RANDOM_STATE = 1234
-x_tr_M784_augmented = np.loadtxt(os.path.join(DATA_DIR, 'x_train_augmented.csv'), delimiter=',',  skiprows=1)
 
-y_tr_M_augmented = np.loadtxt(os.path.join(DATA_DIR, 'y_train_augmented.csv'), delimiter=',',  skiprows=1)
+# Where to load the incoming data from
+DATA_DIR = 'data_sneaker_vs_sandal'
+x_tr_M784 = np.loadtxt(os.path.join(DATA_DIR, 'x_train_set.csv'), delimiter=',')
+x_va_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_valid_set.csv'), delimiter=',')
+x_te_N784 = np.loadtxt(os.path.join(DATA_DIR, 'x_test.csv'), delimiter=',', skiprows=1)
+
+M_shape = x_tr_M784.shape
+N_shape = x_va_N784.shape
+
+N = N_shape[0]
+M = M_shape[0]
+
+y_tr_M = np.loadtxt(os.path.join(DATA_DIR, 'y_train_set.csv'), delimiter=',')
+y_va_N = np.loadtxt(os.path.join(DATA_DIR, 'y_valid_set.csv'), delimiter=',')
 
 C_grid = np.logspace(-9, 6, 31)
+
+BEST_ITERS_FILE = 'cv_best_iterations.txt'
+BEST_C_FILE = 'cv_best_c.txt'
 
 def hyperparameterSelection(x_train_fold, y_train_fold, x_valid_fold, y_valid_fold):
     """ Iterate over our C_grid to see which hyperparameter gives us the best performance
@@ -46,14 +60,48 @@ def hyperparameterSelection(x_train_fold, y_train_fold, x_valid_fold, y_valid_fo
 
     min_c_index = np.argmin(error_va_lr_c)
     min_c = C_grid[min_c_index]
-    print(f"\n\n min_c = {min_c}\n\n")
+    with open(BEST_C_FILE, 'a') as f:
+        f.write(f"min_c = {min_c}")
 
-    # Use chose model to plot metrics
-    # chosen_model = lr_models_c[min_c_index]
-    # yproba1_tr_M = chosen_model.predict_proba(x_train_fold)[:, 1]
-    # yproba1_va_N = chosen_model.predict_proba(x_valid_fold)[:, 1]
+    return error_tr_lr_c, error_va_lr_c
 
-    return bce_tr_lr_i, bce_va_lr_i
+def lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N, C=1e6):
+    solver = 'lbfgs'
+    iterations = 20
+    iter_step = 1
+
+    lr_models_i = list()
+
+    error_tr_lr_i = list()
+    error_va_lr_i = list()
+
+    bce_tr_lr_i = list()
+    bce_va_lr_i = list()
+
+    for i in range(0, iterations, iter_step):
+        lr_i = sklearn.linear_model.LogisticRegression(max_iter=i+1, C=C, solver=solver, random_state=RANDOM_STATE)
+        lr_i.fit(x_tr_M784, y_tr_M)  # Part b
+        lr_models_i.append(lr_i)
+
+        yproba1_tr_M = lr_i.predict_proba(x_tr_M784)[:, 1]  # The probability of predicting class 1 on the training set
+        yproba1_va_N = lr_i.predict_proba(x_va_N784)[:, 1]  # The probability of predicting class 1 on the validation set
+
+        error_tr_lr_i.append(sklearn.metrics.zero_one_loss(y_tr_M, yproba1_tr_M >= 0.5))
+        error_va_lr_i.append(sklearn.metrics.zero_one_loss(y_va_N, yproba1_va_N >= 0.5))
+
+        bce_tr_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_tr_M, yproba1_tr_M))
+        bce_va_lr_i.append(calc_mean_binary_cross_entropy_from_probas(y_va_N, yproba1_va_N))
+    
+    # Find C value with best bce & error rates
+    best_error_ind = error_va_lr_i.index(min(error_va_lr_i))
+    best_bce_ind = bce_va_lr_i.index(min(bce_va_lr_i))
+    
+    # Use the best BCE index as our optimal value
+    optimal_iter = best_error_ind + 1
+    with open(BEST_ITERS_FILE, 'a') as f:
+        f.write(f"optimal_iter = {optimal_iter}\n")
+
+    return error_tr_lr_i, error_va_lr_i
 
 
 def split_into_train_and_valid_folds(x, y, id=None, n_valid_samples=2000, random_state=None):
@@ -81,8 +129,8 @@ def split_into_train_and_valid_folds(x, y, id=None, n_valid_samples=2000, random
     x_valid_set_folds = []
     y_valid_set_folds = []
 
-    bce_tr_lr_fold = list()
-    bce_va_lr_fold = list()
+    error_tr_lr_fold = list()
+    error_va_lr_fold = list()
 
     for ind in range(6):
         positive_samples_copy = random_state.permutation(positive_samples)
@@ -105,13 +153,51 @@ def split_into_train_and_valid_folds(x, y, id=None, n_valid_samples=2000, random
         x_valid_set = np.vstack((x[valid_positive_samples], x[valid_negative_samples]))
         y_valid_set = np.hstack((y[valid_positive_samples], y[valid_negative_samples]))
 
-        bce_tr_lr, bce_va_lr = hyperparameterSelection(x_train_set, y_train_set, x_valid_set, y_valid_set)
-        bce_tr_lr_fold.append(bce_tr_lr)
-        bce_va_lr_fold.append(bce_va_lr)
+        # error_tr_lr, error_va_lr = lossAssessment(x_tr_M784, y_tr_M, x_va_N784, y_va_N, C=1e6)
+        error_tr_lr, error_va_lr = hyperparameterSelection(x_train_set, y_train_set, x_valid_set, y_valid_set)
+        
+        error_tr_lr_fold.append(error_tr_lr)
+        error_va_lr_fold.append(error_va_lr)
     
-    return bce_tr_lr_fold, bce_va_lr_fold
+    return error_tr_lr_fold, error_va_lr_fold
 
-def plot_train_cv_logloss(bce_tr_lr_fold):
+def plot_train_cv_iter_error(error_tr_lr_fold):
+    fig, ax = plt.subplots()
+
+    # Set up the Log Loss subplot
+    x = list(range(40))
+    ax.plot(x, error_tr_lr_fold[0], 'b.-', label='Fold 1')
+    ax.plot(x, error_tr_lr_fold[1], 'g.-', label='Fold 2')
+    ax.plot(x, error_tr_lr_fold[2], 'r.-', label='Fold 3')
+    ax.plot(x, error_tr_lr_fold[3], 'c.-', label='Fold 4')
+    ax.plot(x, error_tr_lr_fold[4], 'm.-', label='Fold 5')
+    ax.plot(x, error_tr_lr_fold[5], 'y.-', label='Fold 6')
+    ax.set_title('Error over 6-fold Cross Validation on Train sets over iterations')
+    ax.set_ylabel('Error')
+    ax.set_xlabel("Iterations")
+    ax.legend()
+    plt.savefig('output-figures/CrossValidationTrainset_IterError.png')
+    plt.show() 
+
+def plot_valid_cv_iter_error(error_va_lr_fold):
+    fig, ax = plt.subplots()
+
+    # Set up the Log Loss subplot
+    x = list(range(40))
+    ax.plot(x, error_va_lr_fold[0], 'b.-', label='Fold 1')
+    ax.plot(x, error_va_lr_fold[1], 'g.-', label='Fold 2')
+    ax.plot(x, error_va_lr_fold[2], 'r.-', label='Fold 3')
+    ax.plot(x, error_va_lr_fold[3], 'c.-', label='Fold 4')
+    ax.plot(x, error_va_lr_fold[4], 'm.-', label='Fold 5')
+    ax.plot(x, error_va_lr_fold[5], 'y.-', label='Fold 6')
+    ax.set_title('Error over over 6-fold Cross Validation on Holdout sets over iterations')
+    ax.set_ylabel('Error')
+    ax.set_xlabel("Iterations")
+    ax.legend()
+    plt.savefig('output-figures/CrossValidationValidset_IterError.png')
+    plt.show()
+
+def plot_train_cv_c_error(bce_tr_lr_fold):
     fig, ax = plt.subplots()
 
     # Set up the Log Loss subplot
@@ -122,14 +208,14 @@ def plot_train_cv_logloss(bce_tr_lr_fold):
     ax.plot(x, bce_tr_lr_fold[3], 'c.-', label='Fold 4')
     ax.plot(x, bce_tr_lr_fold[4], 'm.-', label='Fold 5')
     ax.plot(x, bce_tr_lr_fold[5], 'y.-', label='Fold 6')
-    ax.set_title('Log Loss over 6-fold Cross Validation on Train sets')
-    ax.set_ylabel('Log loss')
+    ax.set_title('Error over 6-fold Cross Validation on Train sets')
+    ax.set_ylabel('Error')
     ax.set_xlabel("log_{10} C")
     ax.legend()
-    plt.savefig('output-figures/CrossValidationTrainset.png')
+    plt.savefig('output-figures/CrossValidationTrainset_C_Error.png')
     plt.show() 
 
-def plot_valid_cv_logloss(bce_va_lr_fold):
+def plot_valid_cv_c_error(bce_va_lr_fold):
     fig, ax = plt.subplots()
 
     # Set up the Log Loss subplot
@@ -140,11 +226,11 @@ def plot_valid_cv_logloss(bce_va_lr_fold):
     ax.plot(x, bce_va_lr_fold[3], 'c.-', label='Fold 4')
     ax.plot(x, bce_va_lr_fold[4], 'm.-', label='Fold 5')
     ax.plot(x, bce_va_lr_fold[5], 'y.-', label='Fold 6')
-    ax.set_title('Log Loss over 6-fold Cross Validation on Holdout sets')
-    ax.set_ylabel('Log loss')
+    ax.set_title('Error over 6-fold Cross Validation on Holdout sets')
+    ax.set_ylabel('Error')
     ax.set_xlabel("log_{10} C")
     ax.legend()
-    plt.savefig('output-figures/CrossValidationValidset.png')
+    plt.savefig('output-figures/CrossValidationValidset_C_Error.png')
     plt.show()   
 
 
@@ -154,6 +240,8 @@ if __name__ == '__main__':
     y_train = np.loadtxt(os.path.join(DATA_DIR, 'y_train.csv'), delimiter=',', skiprows=1)
     # data_exploration()
     # For consistent splits, use a random_state param
-    bce_tr_lr_fold, bce_va_lr_fold = split_into_train_and_valid_folds(x_train, y_train, None, n_valid_samples=2000, random_state=RANDOM_STATE)
-    plot_train_cv_logloss(bce_tr_lr_fold)
-    plot_valid_cv_logloss(bce_va_lr_fold)
+    error_tr_lr_fold, error_va_lr_fold = split_into_train_and_valid_folds(x_train, y_train, None, n_valid_samples=2000, random_state=RANDOM_STATE)
+    # plot_train_cv_iter_error(error_tr_lr_fold)
+    # plot_valid_cv_iter_error(error_va_lr_fold)
+    plot_train_cv_c_error(error_tr_lr_fold)
+    plot_valid_cv_c_error(error_va_lr_fold)
